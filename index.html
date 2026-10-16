@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Declaração de Vale-Transporte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚌</text></svg>">
+<script src="config.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg class="shield" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 1 28 6v10c0 8-5.6 14.4-13 17C7.6 30.4 2 24 2 16V6z" fill="var(--ink)"/><path d="M9 11h3.2l2.8 9 2.8-9H21l-4.6 13h-2.8z" fill="var(--ticket)"/></svg>
+    <span id="brandName">Declaração de Vale-Transporte</span>
+  </div>
+
+  <main>
+    <h1>Declaração de Beneficiário de Vale-Transporte</h1>
+    <p class="lead">Escolha se deseja receber ou cancelar o vale-transporte. Se optar por receber, informe seu endereço, as conduções que utiliza e anexe a foto de um comprovante de residência atualizado.</p>
+    <p class="date-line" id="dateLine"></p>
+
+    <!-- Código do convite -->
+    <section class="step hidden" id="codeBox">
+      <h3>Código do convite</h3>
+      <p class="hint">Digite o código de 6 letras/números que o RH enviou junto com o link.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">
+        <input type="text" id="codeInput" maxlength="6" autocomplete="off" style="max-width:180px;text-transform:uppercase;letter-spacing:3px;font-weight:600" placeholder="ABC123">
+        <button type="button" class="btn" id="codeBtn">Confirmar código</button>
+      </div>
+      <div class="err" id="err-code"></div>
+    </section>
+    <div id="loading" class="status info">Carregando seu convite…</div>
+
+    <section class="emp-box hidden" id="empBox">
+      <div class="emp-head"><h3>Empregador</h3></div>
+      <div class="emp-razao" id="empRazao"></div>
+      <div class="emp-cnpj" id="empCnpj"></div>
+    </section>
+
+    <form id="form" class="hidden" novalidate>
+      <fieldset style="border:0;padding:0;margin:0">
+        <legend class="hidden">Opção pelo vale-transporte</legend>
+        <div class="tickets">
+          <label class="ticket yes">
+            <input type="radio" name="opcao" value="opto">
+            <span class="t-title"><span class="mark"></span>Opto pelo vale-transporte</span>
+            <span class="t-sub" style="display:block">Quero receber o benefício para ir e voltar do trabalho.</span>
+          </label>
+          <label class="ticket no">
+            <input type="radio" name="opcao" value="nao_opto">
+            <span class="t-title"><span class="mark"></span>Não opto / cancelar</span>
+            <span class="t-sub" style="display:block">Não quero receber, ou quero cancelar o benefício atual.</span>
+          </label>
+        </div>
+        <div class="err" id="err-opcao">Escolha uma das duas opções para continuar.</div>
+      </fieldset>
+
+      <section class="step">
+        <div class="step-head"><span class="num" data-n>1</span><h2>Identificação</h2></div>
+        <div class="grid">
+          <div class="c4"><label class="f" for="nome">Nome completo</label><input type="text" id="nome" autocomplete="name" maxlength="120"><div class="err" id="err-nome">Informe seu nome completo.</div></div>
+          <div class="c2"><label class="f" for="local">Cidade (local da declaração)</label><input type="text" id="local" maxlength="60" placeholder="Ex.: Volta Redonda"><div class="err" id="err-local">Informe a cidade.</div></div>
+        </div>
+      </section>
+
+      <div id="optIn" class="hidden">
+        <section class="step">
+          <div class="step-head"><span class="num" data-n>2</span><h2>Endereço residencial</h2></div>
+          <div class="grid">
+            <div class="c4"><label class="f" for="rua">Rua / Avenida</label><input type="text" id="rua" autocomplete="address-line1" maxlength="120"></div>
+            <div class="c2"><label class="f" for="numero">Número</label><input type="text" id="numero" maxlength="12"></div>
+            <div class="c3"><label class="f" for="compl">Complemento <span class="hint">(opcional)</span></label><input type="text" id="compl" maxlength="60"></div>
+            <div class="c3"><label class="f" for="bairro">Bairro</label><input type="text" id="bairro" maxlength="60"></div>
+            <div class="c3"><label class="f" for="cidade">Cidade</label><input type="text" id="cidade" autocomplete="address-level2" maxlength="60"></div>
+            <div class="c2"><label class="f" for="cep">CEP</label><input type="text" id="cep" inputmode="numeric" autocomplete="postal-code" maxlength="9" placeholder="00000-000"></div>
+            <div class="c2" style="grid-column:span 1"><label class="f" for="uf">UF</label><select id="uf"><option value="">—</option></select></div>
+          </div>
+          <div class="err" id="err-end">Preencha rua, número, bairro, cidade, CEP (8 dígitos) e estado.</div>
+        </section>
+
+        <section class="step">
+          <div class="step-head"><span class="num" data-n>3</span><h2>Conduções utilizadas</h2></div>
+          <p class="hint">Informe os meios de transporte coletivo, público e regular mais adequados ao seu trajeto: empresa de ônibus, número ou nome da linha e valor da passagem. Se pegar mais de um ônibus, adicione outra condução.</p>
+          <div class="leg" data-leg="ida">
+            <div class="leg-head"><h3>Da residência para o trabalho</h3><button type="button" class="btn small" data-add="ida">+ Adicionar condução</button></div>
+            <div class="rows"></div><div class="total" data-total="ida"></div>
+          </div>
+          <div class="leg" data-leg="volta">
+            <div class="leg-head"><h3>Do trabalho para a residência</h3>
+              <span style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small" id="copyIda">Mesmo trajeto da ida</button><button type="button" class="btn small" data-add="volta">+ Adicionar condução</button></span></div>
+            <div class="rows"></div><div class="total" data-total="volta"></div>
+          </div>
+          <div class="err" id="err-trans">Preencha empresa, linha e valor de pelo menos uma condução na ida e uma na volta.</div>
+        </section>
+
+        <section class="step">
+          <div class="step-head"><span class="num" data-n>4</span><h2>Comprovante de residência</h2></div>
+          <div class="alert" role="note">
+            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex:none"><path d="M12 2 1 21h22z" fill="var(--ticket)"/><path d="M12 9v5m0 3v.5" stroke="var(--ticket-ink)" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <div><strong>O comprovante precisa ter data dos últimos dois meses para ser aceito.</strong> Serve conta de luz, água, gás, telefone, internet ou fatura de cartão, em seu nome ou de familiar que mora com você. A foto deve mostrar o endereço e a data com nitidez.</div>
+          </div>
+          <label class="drop" for="compFile" id="compDrop">
+            <span class="ico"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l1.5-2h7L17 7h3v12H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13" r="3.5" fill="none" stroke="currentColor" stroke-width="2"/></svg></span>
+            <span><strong>Anexar foto do comprovante</strong><br><span class="hint">Tire uma foto ou escolha da galeria</span></span>
+            <input type="file" id="compFile" accept="image/*">
+          </label>
+          <div class="preview" id="compPreview"><img id="compImg" alt="Prévia do comprovante"><div><strong>Comprovante anexado</strong><br><button type="button" class="btn small" data-retake="compFile">Trocar foto</button></div></div>
+          <div class="err" id="err-comp">Anexe a foto do comprovante de residência.</div>
+          <label class="check"><input type="checkbox" id="chkData"><span>Confirmo que o comprovante anexado tem data dos últimos dois meses.</span></label>
+          <div class="err" id="err-chkData">Confirme a data do comprovante.</div>
+        </section>
+
+        <section class="step">
+          <div class="step-head"><span class="num" data-n>5</span><h2>Cartão de passagem</h2></div>
+          <p class="hint">Se você já tem cartão de passagem (Riocard Mais ou cartão da empresa de ônibus), tire uma foto da frente, mostrando o número. Se ainda não tem, marque a opção abaixo.</p>
+          <label class="drop" for="cartaoFile" id="cartaoDrop">
+            <span class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M2.5 9.5h19" stroke="currentColor" stroke-width="2"/><path d="M6 15h5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="15" r="1.6" fill="currentColor"/></svg></span>
+            <span><strong>Tirar foto do cartão de passagem</strong><br><span class="hint">Abre a câmera. Fotografe a frente com o número visível.</span></span>
+            <input type="file" id="cartaoFile" accept="image/*" capture="environment">
+          </label>
+          <p style="margin-top:8px"><button type="button" class="btn small" data-gallery="cartaoFile">Escolher foto da galeria</button></p>
+          <div class="preview" id="cartaoPreview"><img id="cartaoImg" alt="Prévia do cartão"><div><strong>Foto do cartão anexada</strong><br><button type="button" class="btn small" data-retake="cartaoFile">Tirar outra foto</button></div></div>
+          <div class="grid" style="margin-top:12px"><div class="c3"><label class="f" for="cartaoNum">Número do cartão <span class="hint">(opcional)</span></label><input type="text" id="cartaoNum" inputmode="numeric" maxlength="30"></div></div>
+          <label class="check"><input type="checkbox" id="semCartao"><span>Ainda não tenho cartão de passagem.</span></label>
+          <div class="err" id="err-cartao">Tire a foto do cartão de passagem ou marque que ainda não tem cartão.</div>
+        </section>
+      </div>
+
+      <div id="optOut" class="hidden">
+        <section class="step">
+          <div class="step-head"><span class="num" data-n>2</span><h2>Carta de próprio punho</h2></div>
+          <p>Para não optar ou cancelar o vale-transporte, escreva à mão uma carta curta, assine e envie uma foto dela aqui.</p>
+          <div class="alert" role="note">
+            <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true" style="flex:none"><path d="M12 2 1 21h22z" fill="var(--ticket)"/><path d="M12 9v5m0 3v.5" stroke="var(--ticket-ink)" stroke-width="2.2" stroke-linecap="round"/></svg>
+            <div>A carta precisa ser <strong>escrita e assinada à mão por você</strong>, com data e local. Cartas digitadas ou impressas não são aceitas. A foto deve mostrar a folha inteira com a letra legível.</div>
+          </div>
+          <details style="margin:10px 0 14px">
+            <summary style="cursor:pointer;font-weight:600">Ver modelo de texto para copiar à mão</summary>
+            <div id="cartaModelo" style="margin-top:10px;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:14px 16px;font-size:.97rem;line-height:1.6"></div>
+          </details>
+          <label class="drop" for="cartaFile" id="cartaDrop">
+            <span class="ico"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2.5h8l4 4V21.5H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M14 2.5v4h4" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M8.5 12h7M8.5 15h5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+            <span><strong>Tirar foto da carta assinada</strong><br><span class="hint">Abre a câmera. Fotografe a folha inteira, com boa luz.</span></span>
+            <input type="file" id="cartaFile" accept="image/*" capture="environment">
+          </label>
+          <p style="margin-top:8px"><button type="button" class="btn small" data-gallery="cartaFile">Escolher foto da galeria</button></p>
+          <div class="preview" id="cartaPreview"><img id="cartaImg" alt="Prévia da carta"><div><strong>Foto da carta anexada</strong><br><button type="button" class="btn small" data-retake="cartaFile">Tirar outra foto</button></div></div>
+          <div class="err" id="err-carta">Envie a foto da carta de próprio punho assinada.</div>
+          <label class="check"><input type="checkbox" id="chkCarta"><span>Confirmo que a carta foi escrita e assinada à mão por mim.</span></label>
+          <div class="err" id="err-chkCarta">Confirme que a carta foi escrita e assinada por você.</div>
+        </section>
+      </div>
+
+      <section class="step">
+        <div class="step-head"><span class="num" data-n>6</span><h2>Declarações</h2></div>
+        <div id="declOpt" class="hidden">
+          <label class="check"><input type="checkbox" id="d1"><span>Comprometo-me a atualizar as informações acima sempre que ocorrerem alterações e a utilizar os vales-transporte que me forem concedidos exclusivamente no percurso indicado.</span></label>
+          <label class="check"><input type="checkbox" id="d2"><span>Estou ciente de que a declaração inexata que induza o empregador em erro, ou o uso indevido dos vales-transporte, configura justa causa para rescisão do contrato de trabalho por ato de improbidade (art. 482, "a", da CLT).</span></label>
+          <p class="hint">O desconto em folha é de até 6% do salário básico, conforme a Lei nº 7.418/1985.</p>
+        </div>
+        <div id="declNo" class="hidden">
+          <label class="check"><input type="checkbox" id="d3"><span>Declaro que não desejo receber o vale-transporte (ou solicito o cancelamento do benefício atual) e estou ciente de que posso solicitá-lo novamente a qualquer momento, preenchendo nova declaração.</span></label>
+        </div>
+        <div class="err" id="err-decl">Marque as declarações acima para continuar.</div>
+      </section>
+
+      <section class="step legal">
+        <div class="step-head"><span class="num" data-n>7</span><h2>Termo de Consentimento e Aviso de Privacidade (LGPD)</h2></div>
+        <div class="scrollbox" tabindex="0" aria-label="Texto do termo de privacidade">
+          <p style="margin-top:12px">Em atendimento à Lei Geral de Proteção de Dados (Lei nº 13.709/2018), os dados informados neste formulário são coletados pela <strong class="lgpd-emp">empresa empregadora</strong><span class="lgpd-cnpj"></span>, na qualidade de controladora, exclusivamente para as seguintes finalidades:</p>
+          <ul>
+            <li>Cumprimento de obrigações legais e trabalhistas (registro no eSocial, FGTS, INSS e folha de pagamento).</li>
+            <li>Execução do contrato de trabalho e concessão de benefícios (como vale-transporte e plano odontológico).</li>
+            <li>Comunicação interna e operacional entre a empresa e o colaborador.</li>
+          </ul>
+          <h3>Dados coletados</h3>
+          <p>Nome, endereço residencial, trajeto e conduções utilizadas, valores de passagem, imagem do comprovante de residência, imagem do cartão de passagem e, para quem não opta pelo benefício, imagem da carta de próprio punho. Não são coletados dados pessoais sensíveis.</p>
+          <h3>Base legal</h3>
+          <ul>
+            <li><strong>Cumprimento de obrigação legal ou regulatória</strong> (art. 7º, II, da LGPD): a concessão do vale-transporte é obrigação do empregador prevista na Lei nº 7.418/1985 e no Decreto nº 10.854/2021, que exigem declaração do empregado com endereço residencial e meios de transporte adequados.</li>
+            <li><strong>Execução de contrato</strong> (art. 7º, V, da LGPD): gestão do contrato de trabalho e dos benefícios dele decorrentes.</li>
+            <li><strong>Exercício regular de direitos</strong> (art. 7º, VI, da LGPD): guarda da declaração para eventual defesa em processo judicial, administrativo ou fiscalizatório.</li>
+          </ul>
+          <h3>Compartilhamento</h3>
+          <p>Os dados poderão ser compartilhados apenas com órgãos públicos para cumprimento de obrigações legais (como eSocial e Receita Federal), com a operadora/fornecedora do vale-transporte e com prestadores de serviço de folha de pagamento e contabilidade, sempre na medida necessária às finalidades acima.</p>
+          <h3>Nosso compromisso</h3>
+          <p>A <span class="lgpd-emp">empresa empregadora</span> declara que adota medidas técnicas e administrativas aptas a proteger os dados pessoais de acessos não autorizados e de situações acidentais ou ilícitas de destruição, perda, alteração, comunicação ou difusão. Os dados serão retidos pelo período necessário para o cumprimento das obrigações legais e regulatórias ou pelo prazo de guarda exigido pela legislação trabalhista e previdenciária.</p>
+          <h3>Seus direitos</h3>
+          <p>Nos termos do art. 18 da LGPD, você pode solicitar a qualquer momento: confirmação da existência de tratamento, acesso aos dados, correção de dados incompletos, inexatos ou desatualizados, informações sobre compartilhamento e demais direitos previstos em lei, entrando em contato com o Departamento Pessoal / RH da empresa. A retirada do aceite não afeta o tratamento necessário ao cumprimento de obrigações legais.</p>
+          <h3>Acesso às informações</h3>
+          <p>Suas respostas e fotos são armazenadas em ambiente restrito da empresa e ficam acessíveis apenas à equipe de RH responsável.</p>
+        </div>
+        <label class="check"><input type="checkbox" id="lgpd"><span><strong>Li e estou de acordo</strong> com o Termo de Consentimento e Aviso de Privacidade acima, e autorizo o tratamento dos meus dados para as finalidades descritas.</span></label>
+        <div class="err" id="err-lgpd">É necessário aceitar o termo para enviar.</div>
+      </section>
+
+      <section class="step">
+        <label class="check" style="padding-top:0"><input type="checkbox" id="assin"><span>Confirmo que as informações são verdadeiras e que este envio vale como minha <strong>assinatura eletrônica</strong> desta declaração.</span></label>
+        <div class="err" id="err-assin">Confirme a assinatura eletrônica.</div>
+        <button type="submit" class="btn primary" id="submitBtn" style="margin-top:10px">Enviar declaração</button>
+        <div id="formMsg" class="hidden"></div>
+      </section>
+    </form>
+    <div id="done" class="status ok hidden"></div>
+  </main>
+
+  <footer>Departamento Pessoal · <strong id="footName"></strong><span id="footCnpj"></span></footer>
+</div>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+  const API=window.API_URL;
+  const meses=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const hoje=new Date(), dataTexto=`${hoje.getDate()} de ${meses[hoje.getMonth()]} de ${hoje.getFullYear()}`;
+  $("#dateLine").textContent="Data da declaração: "+dataTexto;
+  ["AC","AL","AP","AM","BA","CE","DF","ES","GO","MA","MT","MS","MG","PA","PB","PR","PE","PI","RJ","RN","RS","RO","RR","SC","SP","SE","TO"].forEach(u=>{const o=document.createElement("option");o.value=u;o.textContent=u;$("#uf").appendChild(o);});
+  $("#uf").value="RJ";
+  function esc(s){const d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML;}
+  function money(v){return v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"});}
+
+  let convite=null; const fotos={compFile:null,cartaoFile:null,cartaFile:null};
+
+  /* ---------- Convite ---------- */
+  function aplicarEmpresa(){
+    const e=convite.empresa;
+    $("#brandName").textContent=e.razao; $("#footName").textContent=e.razao; $("#footCnpj").textContent=" · CNPJ "+e.cnpj;
+    document.title="Declaração de Vale-Transporte · "+e.razao;
+    $("#empRazao").textContent=e.razao; $("#empCnpj").textContent="CNPJ "+e.cnpj;
+    $$(".lgpd-emp").forEach(x=>x.textContent=e.razao); $$(".lgpd-cnpj").forEach(x=>x.textContent=", inscrita no CNPJ sob o nº "+e.cnpj);
+    if(convite.nome&&!$("#nome").value) $("#nome").value=convite.nome;
+    $("#empBox").classList.remove("hidden"); $("#form").classList.remove("hidden"); $("#codeBox").classList.add("hidden");
+    modeloCarta();
+  }
+  async function carregarConvite(code){
+    const err=$("#err-code"); code=String(code||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+    if(code.length!==6){ err.textContent="O código tem 6 letras/números."; err.classList.add("show"); return false; }
+    if(!API||API.indexOf("http")!==0){ err.textContent="Formulário ainda não configurado. Avise o RH."; err.classList.add("show"); return false; }
+    try{
+      const r=await (await fetch(API+"?action=convite&codigo="+encodeURIComponent(code))).json();
+      if(!r.ok){ err.textContent=r.erro||"Código não encontrado. Confira com o RH."; err.classList.add("show"); return false; }
+      convite=r.convite; err.classList.remove("show"); aplicarEmpresa(); return true;
+    }catch(e){ err.textContent="Sem conexão. Verifique a internet e tente de novo."; err.classList.add("show"); return false; }
+  }
+  $("#codeBtn").onclick=()=>carregarConvite($("#codeInput").value);
+  $("#codeInput").addEventListener("input",e=>{e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,"");});
+
+  /* ---------- Opção ---------- */
+  function opcao(){const r=$('input[name=opcao]:checked');return r?r.value:null;}
+  function applyOpcao(){
+    const o=opcao();
+    $("#optIn").classList.toggle("hidden",o!=="opto"); $("#optOut").classList.toggle("hidden",o!=="nao_opto");
+    $("#declOpt").classList.toggle("hidden",o!=="opto"); $("#declNo").classList.toggle("hidden",o!=="nao_opto");
+    $$("[data-n]").filter(n=>!n.closest(".hidden")).forEach((n,i)=>n.textContent=i+1);
+    $("#err-opcao").classList.remove("show");
+  }
+  $$('input[name=opcao]').forEach(r=>r.addEventListener("change",applyOpcao)); applyOpcao();
+
+  /* ---------- Conduções ---------- */
+  function parseVal(s){s=(s||"").trim().replace(/\./g,"").replace(",",".");const v=parseFloat(s);return isFinite(v)&&v>0?Math.round(v*100)/100:null;}
+  function addRow(leg,data){
+    const rows=document.querySelector(`[data-leg=${leg}] .rows`), row=document.createElement("div"); row.className="leg-row";
+    row.innerHTML=`<div><label class="f">Empresa de ônibus</label><input type="text" class="emp" maxlength="60" placeholder="Ex.: Sul Fluminense"></div>
+      <div><label class="f">Nº ou nome da linha</label><input type="text" class="lin" maxlength="60" placeholder="Ex.: 205 – Centro"></div>
+      <div class="valor"><label class="f">Valor (R$)</label><input type="text" class="val" inputmode="decimal" maxlength="8" placeholder="0,00"></div>
+      <button type="button" class="btn icon" aria-label="Remover condução">✕</button>`;
+    if(data){row.querySelector(".emp").value=data.empresa||"";row.querySelector(".lin").value=data.linha||"";row.querySelector(".val").value=data.valor?data.valor.toFixed(2).replace(".",","):"";}
+    row.querySelector("button").onclick=()=>{ if(rows.children.length>1) row.remove(); else row.querySelectorAll("input").forEach(i=>i.value=""); totals(); };
+    row.querySelector(".val").addEventListener("input",e=>{e.target.value=e.target.value.replace(/[^\d,\.]/g,"");totals();});
+    rows.appendChild(row);
+  }
+  function legData(leg){return $$(`[data-leg=${leg}] .leg-row`).map(r=>({empresa:r.querySelector(".emp").value.trim(),linha:r.querySelector(".lin").value.trim(),valor:parseVal(r.querySelector(".val").value)})).filter(x=>x.empresa||x.linha||x.valor);}
+  function totals(){["ida","volta"].forEach(l=>{const t=legData(l).reduce((a,b)=>a+(b.valor||0),0);document.querySelector(`[data-total=${l}]`).textContent=t?"Total do trecho: "+money(t):"";});}
+  $$("[data-add]").forEach(b=>b.onclick=()=>addRow(b.dataset.add));
+  $("#copyIda").onclick=()=>{const ida=legData("ida"),rows=document.querySelector("[data-leg=volta] .rows");rows.innerHTML="";(ida.length?ida.slice().reverse():[null]).forEach(d=>addRow("volta",d));totals();};
+  addRow("ida"); addRow("volta");
+  $("#cep").addEventListener("input",e=>{let d=e.target.value.replace(/\D/g,"").slice(0,8);e.target.value=d.length>5?d.slice(0,5)+"-"+d.slice(5):d;});
+
+  /* ---------- Fotos ---------- */
+  async function loadImage(file){ try{return await createImageBitmap(file);}catch(e){ return await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=URL.createObjectURL(file);}); } }
+  async function compress(file){
+    const img=await loadImage(file); let max=1800,q=0.8,out="";
+    for(let i=0;i<10;i++){
+      const s=Math.min(1,max/Math.max(img.width,img.height)), c=document.createElement("canvas");
+      c.width=Math.round(img.width*s); c.height=Math.round(img.height*s);
+      const ctx=c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(img,0,0,c.width,c.height);
+      out=c.toDataURL("image/jpeg",q); if(out.length<900000) return out;
+      if(q>0.55) q-=0.1; else max=Math.round(max*0.8);
+    }
+    return out;
+  }
+  const previewOf={compFile:["#compPreview","#compImg","comp"],cartaoFile:["#cartaoPreview","#cartaoImg","cartao"],cartaFile:["#cartaPreview","#cartaImg","carta"]};
+  const galleryInputs={};
+  function bindFoto(id){
+    const handler=async e=>{
+      const f=e.target.files&&e.target.files[0]; if(!f) return;
+      const [pv,img,errId]=previewOf[id], err=$("#err-"+errId);
+      err.style.color="var(--muted)"; err.textContent="Processando a foto…"; err.classList.add("show");
+      try{ fotos[id]=await compress(f); $(img).src=fotos[id]; $(pv).classList.add("show"); err.classList.remove("show");
+        if(id==="cartaoFile"){ $("#semCartao").checked=false; $("#cartaoDrop").style.opacity=""; } }
+      catch(x){ fotos[id]=null; err.textContent="Não foi possível ler esta imagem. Tire uma nova foto."; }
+      err.style.color=""; e.target.value="";
+    };
+    $("#"+id).addEventListener("change",handler);
+    const g=document.createElement("input"); g.type="file"; g.accept="image/*"; g.className="hidden"; g.addEventListener("change",handler); document.body.appendChild(g); galleryInputs[id]=g;
+  }
+  Object.keys(fotos).forEach(bindFoto);
+  $$("[data-gallery]").forEach(b=>b.onclick=()=>galleryInputs[b.dataset.gallery].click());
+  $$("[data-retake]").forEach(b=>b.onclick=()=>$("#"+b.dataset.retake).click());
+  $("#semCartao").addEventListener("change",e=>{ if(e.target.checked){fotos.cartaoFile=null;$("#cartaoPreview").classList.remove("show");} $("#cartaoDrop").style.opacity=e.target.checked?".5":""; $("#err-cartao").classList.remove("show"); });
+
+  /* ---------- Carta ---------- */
+  function modeloCarta(){
+    const e=convite&&convite.empresa, nome=$("#nome").value.trim()||"[seu nome completo]", local=$("#local").value.trim()||"[cidade]";
+    $("#cartaModelo").innerHTML=`<p>${esc(local)}, ${dataTexto}.</p><p>À ${e?esc(e.razao)+", CNPJ "+e.cnpj:"[empresa]"}.</p>
+      <p>Eu, ${esc(nome)}, portador(a) do CPF nº [seu CPF], declaro, por livre e espontânea vontade, que <strong>não desejo receber o vale-transporte</strong> (ou solicito o cancelamento do benefício), por não utilizar transporte coletivo público no deslocamento entre minha residência e o local de trabalho.</p>
+      <p>Estou ciente de que posso solicitar o benefício novamente a qualquer momento, mediante nova declaração.</p><p>[Assinatura]<br>${esc(nome)}</p>`;
+  }
+  ["nome","local"].forEach(i=>$("#"+i).addEventListener("input",modeloCarta));
+
+  /* ---------- Validação ---------- */
+  function validate(){
+    let ok=true, first=null;
+    const mark=(id,cond,el)=>{const e=$("#err-"+id); if(e) e.classList.toggle("show",!cond); if(!cond){ok=false; if(!first) first=el||e;}};
+    const o=opcao();
+    mark("opcao",!!o,$(".tickets"));
+    mark("nome",$("#nome").value.trim().split(/\s+/).length>=2,$("#nome"));
+    mark("local",$("#local").value.trim().length>=2,$("#local"));
+    if(o==="opto"){
+      const cep=$("#cep").value.replace(/\D/g,"");
+      mark("end",["rua","numero","bairro","cidade"].every(i=>$("#"+i).value.trim())&&cep.length===8&&$("#uf").value,$("#rua"));
+      const legOk=l=>{const d=legData(l);return d.length>0&&d.every(x=>x.empresa&&x.linha&&x.valor);};
+      mark("trans",legOk("ida")&&legOk("volta"),document.querySelector("[data-leg=ida]"));
+      $("#err-comp").textContent="Anexe a foto do comprovante de residência.";
+      mark("comp",!!fotos.compFile,$("#compDrop"));
+      mark("chkData",$("#chkData").checked,$("#chkData"));
+      $("#err-cartao").textContent="Tire a foto do cartão de passagem ou marque que ainda não tem cartão.";
+      mark("cartao",!!fotos.cartaoFile||$("#semCartao").checked,$("#cartaoDrop"));
+      mark("decl",$("#d1").checked&&$("#d2").checked,$("#d1"));
+    } else if(o==="nao_opto"){
+      $("#err-carta").textContent="Envie a foto da carta de próprio punho assinada.";
+      mark("carta",!!fotos.cartaFile,$("#cartaDrop"));
+      mark("chkCarta",$("#chkCarta").checked,$("#chkCarta"));
+      mark("decl",$("#d3").checked,$("#d3"));
+    }
+    mark("lgpd",$("#lgpd").checked,$("#lgpd"));
+    mark("assin",$("#assin").checked,$("#assin"));
+    if(first) first.scrollIntoView({behavior:"smooth",block:"center"});
+    return ok;
+  }
+
+  /* ---------- Envio ---------- */
+  function msg(cls,html){const m=$("#formMsg");m.className="status "+cls;m.innerHTML=html;}
+  $("#form").addEventListener("submit",async e=>{
+    e.preventDefault(); if(!validate()) return;
+    const o=opcao(), btn=$("#submitBtn"); btn.disabled=true; btn.textContent="Enviando… (pode levar alguns segundos)";
+    const ida=o==="opto"?legData("ida"):[], volta=o==="opto"?legData("volta"):[];
+    const body={action:"enviar",codigo:convite.codigo,opcao:o,nome:$("#nome").value.trim(),local:$("#local").value.trim(),dataTexto,
+      endereco:o==="opto"?{rua:$("#rua").value.trim(),numero:$("#numero").value.trim(),complemento:$("#compl").value.trim(),bairro:$("#bairro").value.trim(),cidade:$("#cidade").value.trim(),cep:$("#cep").value,uf:$("#uf").value}:null,
+      ida,volta,cartaoNumero:o==="opto"?$("#cartaoNum").value.trim():"",semCartao:o==="opto"&&$("#semCartao").checked,
+      fotoComprovante:o==="opto"?fotos.compFile:null,fotoCartao:o==="opto"?fotos.cartaoFile:null,fotoCarta:o==="nao_opto"?fotos.cartaFile:null,
+      comprovanteData:o==="opto"&&$("#chkData").checked,declaracoes:true,lgpd:true,lgpdVersao:"2026-10",assinatura:true,dispositivo:navigator.userAgent};
+    try{
+      const r=await (await fetch(API,{method:"POST",body:JSON.stringify(body)})).json();
+      if(!r.ok) throw new Error(r.erro||"Erro ao enviar.");
+      const custo=ida.concat(volta).reduce((a,b)=>a+(b.valor||0),0);
+      $("#form").classList.add("hidden"); const d=$("#done"); d.classList.remove("hidden");
+      d.innerHTML=`<h2>Declaração enviada</h2><p class="hint">${esc(convite.empresa.razao)} · CNPJ ${convite.empresa.cnpj}</p>`+
+        (o==="opto"?`<p>Recebemos sua opção pelo vale-transporte em ${dataTexto}, com custo diário informado de <strong>${money(custo)}</strong>. O RH vai conferir o comprovante de residência antes de liberar o benefício.</p>`
+                   :`<p>Registramos que você <strong>não opta</strong> pelo vale-transporte (ou solicitou o cancelamento) em ${dataTexto}.</p>`)+
+        `<p class="hint">Se algo mudar, abra este mesmo link e envie uma nova declaração.</p>`;
+      d.scrollIntoView({behavior:"smooth",block:"start"});
+    }catch(err){
+      msg("bad","O envio não foi concluído: "+esc(err.message||"falha de conexão")+". Verifique sua internet e toque em Enviar declaração novamente.");
+      btn.disabled=false; btn.textContent="Enviar declaração";
+    }
+  });
+
+  /* ---------- Início ---------- */
+  (async()=>{
+    const c=(new URLSearchParams(location.search).get("c")||"").toUpperCase();
+    let ok=false; if(c) ok=await carregarConvite(c);
+    $("#loading").classList.add("hidden");
+    if(!ok) $("#codeBox").classList.remove("hidden");
+  })();
+})();
+</script>
+</body>
+</html>

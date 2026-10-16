@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel RH · Vale-Transporte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🗂️</text></svg>">
+<script src="config.js"></script>
+<style>
+.wrap{max-width:1040px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:.88rem;color:var(--muted)}
+.live::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--go)}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:14px 0}
+@media (max-width:640px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.kpi b{display:block;font-family:"Barlow Condensed",system-ui,sans-serif;font-size:1.9rem;line-height:1}
+.kpi span{color:var(--muted);font-size:.88rem}
+.pill.pend{background:var(--paper);color:var(--muted)}
+.new-row{animation:flash 2.4s ease-out}
+@keyframes flash{from{background:color-mix(in srgb,var(--ticket) 40%,transparent)}to{background:transparent}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <svg class="shield" viewBox="0 0 30 34" aria-hidden="true"><path d="M15 1 28 6v10c0 8-5.6 14.4-13 17C7.6 30.4 2 24 2 16V6z" fill="var(--ink)"/><path d="M9 11h3.2l2.8 9 2.8-9H21l-4.6 13h-2.8z" fill="var(--ticket)"/></svg>
+    Painel do RH · Vale-Transporte
+  </div>
+
+  <!-- Login -->
+  <section id="login" class="step" style="max-width:460px">
+    <h2>Entrar no painel</h2>
+    <p class="hint">Digite a senha do RH definida na configuração do Apps Script.</p>
+    <label class="f" for="senha" style="margin-top:12px">Senha</label>
+    <input type="password" id="senha" autocomplete="current-password" style="width:100%;font:inherit;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:6px;padding:10px 12px;min-height:46px">
+    <div class="err" id="err-login"></div>
+    <button class="btn primary" id="entrar" style="margin-top:12px">Entrar</button>
+  </section>
+
+  <div id="app" class="hidden">
+    <nav class="tabs" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" data-tab="gerar">Gerar link</button>
+      <button class="tab" role="tab" aria-selected="false" data-tab="respostas">Respostas</button>
+      <span style="flex:1"></span>
+      <span class="live" id="live">Atualizando automaticamente</span>
+      <button class="btn small" id="sair">Sair</button>
+    </nav>
+
+    <!-- GERAR -->
+    <section id="v-gerar">
+      <h1>Gerar link para o funcionário</h1>
+      <p class="lead">O link abre em qualquer celular, sem login. O formulário já vem com a razão social, o CNPJ e o nome do funcionário.</p>
+      <div class="step">
+        <div class="grid">
+          <div class="c6"><label class="f" for="genEmp">Empresa (razão social e CNPJ)</label><select id="genEmp"></select></div>
+          <div class="c4"><label class="f" for="genNome">Nome do funcionário</label><input type="text" id="genNome" maxlength="120" placeholder="Nome completo"></div>
+          <div class="c2"><label class="f" for="genTel">WhatsApp <span class="hint">(opcional)</span></label><input type="text" id="genTel" inputmode="tel" maxlength="16" placeholder="(24) 99999-9999"></div>
+        </div>
+        <div class="err" id="err-gen">Escolha a empresa e informe o nome do funcionário.</div>
+        <button class="btn primary" id="genBtn" style="margin-top:12px">Gerar link</button>
+        <div id="genOut" class="status info hidden" style="margin-top:14px"></div>
+      </div>
+
+      <h2 style="margin-top:28px">Links gerados</h2>
+      <div class="toolbar" style="margin-top:8px">
+        <select id="fCvEmp" style="width:auto;max-width:100%"><option value="">Todas as empresas</option></select>
+        <select id="fCvSit" style="width:auto"><option value="">Todas as situações</option><option value="Pendente">Pendentes</option><option value="Respondeu">Respondidos</option></select>
+        <span class="hint" id="cvCount"></span>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Funcionário</th><th>Empresa</th><th>Código</th><th>Criado em</th><th>Situação</th><th></th></tr></thead>
+        <tbody id="cvBody"><tr><td colspan="6" class="hint">Carregando…</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <!-- RESPOSTAS -->
+    <section id="v-respostas" class="hidden">
+      <h1>Respostas recebidas</h1>
+      <div class="kpis">
+        <div class="kpi"><b id="kTot">0</b><span>respostas</span></div>
+        <div class="kpi"><b id="kOpt">0</b><span>optaram</span></div>
+        <div class="kpi"><b id="kNao">0</b><span>não optaram</span></div>
+        <div class="kpi"><b id="kPend">0</b><span>links pendentes</span></div>
+      </div>
+      <div class="toolbar">
+        <select id="fEmp" style="width:auto;max-width:100%"><option value="">Todas as empresas</option></select>
+        <select id="fOpcao" style="width:auto"><option value="">Todas as opções</option><option value="Opta">Optaram</option><option value="Não opta">Não optaram</option></select>
+        <input type="text" id="fBusca" placeholder="Buscar nome" style="width:auto;flex:1;min-width:160px">
+        <button class="btn small" id="csv">Baixar planilha (CSV)</button>
+      </div>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Nome</th><th>Empresa</th><th>Opção</th><th>Custo diário</th><th>Anexos</th><th>Enviado em</th><th></th></tr></thead>
+        <tbody id="rBody"><tr><td colspan="7" class="hint">Carregando…</td></tr></tbody>
+      </table></div>
+      <p class="hint" style="margin-top:10px">Todas as respostas também ficam na planilha Google (aba Respostas) e as fotos na pasta "Vale-Transporte - Anexos" do Google Drive.</p>
+    </section>
+  </div>
+
+  <footer>Departamento Pessoal · Grupo Vegas</footer>
+</div>
+
+<dialog id="dlg"><div class="dlg" id="dlgBody"></div><div style="padding:0 20px 20px"><button class="btn" id="dlgClose">Fechar</button></div></dialog>
+
+<script>
+(function(){
+  const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+  const API=window.API_URL;
+  const FORM_URL=new URL("index.html",location.href).href.split("?")[0];
+  let chave=null, dados={convites:[],respostas:[],empresas:[]}, vistos=new Set(), primeiraCarga=true, timer=null;
+  function esc(s){const d=document.createElement("div");d.textContent=s==null?"":String(s);return d.innerHTML;}
+  async function api(body){ const r=await fetch(API,{method:"POST",body:JSON.stringify(Object.assign({chave},body))}); return r.json(); }
+
+  /* ---------- Login ---------- */
+  async function entrar(s){
+    const err=$("#err-login");
+    if(!API||API.indexOf("http")!==0){ err.textContent="Falta configurar o endereço do Apps Script no arquivo config.js."; err.classList.add("show"); return; }
+    chave=s; $("#entrar").disabled=true; $("#entrar").textContent="Entrando…";
+    try{
+      const r=await api({action:"login"});
+      if(!r.ok){ err.textContent=r.erro||"Senha incorreta."; err.classList.add("show"); chave=null; try{sessionStorage.removeItem("vt_rh");}catch(e){} }
+      else { try{sessionStorage.setItem("vt_rh",s);}catch(e){} $("#login").classList.add("hidden"); $("#app").classList.remove("hidden"); await carregar(); timer=setInterval(carregar,30000); }
+    }catch(e){ err.textContent="Sem conexão com o Apps Script. Confira o endereço em config.js e se a implantação está com acesso \"Qualquer pessoa\"."; err.classList.add("show"); chave=null; }
+    $("#entrar").disabled=false; $("#entrar").textContent="Entrar";
+  }
+  $("#entrar").onclick=()=>entrar($("#senha").value);
+  $("#senha").addEventListener("keydown",e=>{if(e.key==="Enter") entrar($("#senha").value);});
+  $("#sair").onclick=()=>{ try{sessionStorage.removeItem("vt_rh");}catch(e){} location.reload(); };
+  try{ const s=sessionStorage.getItem("vt_rh"); if(s) entrar(s); }catch(e){}
+
+  /* ---------- Abas ---------- */
+  $$(".tab").forEach(t=>t.onclick=()=>{ $$(".tab").forEach(x=>x.setAttribute("aria-selected",x===t)); $("#v-gerar").classList.toggle("hidden",t.dataset.tab!=="gerar"); $("#v-respostas").classList.toggle("hidden",t.dataset.tab!=="respostas"); });
+
+  /* ---------- Carregar dados ---------- */
+  async function carregar(){
+    try{
+      const r=await api({action:"listar"}); if(!r.ok) return;
+      dados=r; $("#live").textContent="Atualizado às "+new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+      preencherEmpresas(); renderConvites(); renderRespostas();
+      primeiraCarga=false;
+    }catch(e){ $("#live").textContent="Sem conexão · tentando de novo"; }
+  }
+  function preencherEmpresas(){
+    const opts=dados.empresas.map(x=>`<option value="${esc(x.cnpj)}">${esc(x.razao)} — ${esc(x.cnpj)}</option>`).join("");
+    [["#genEmp","Selecione a empresa…"],["#fCvEmp","Todas as empresas"],["#fEmp","Todas as empresas"]].forEach(([id,ph])=>{ const s=$(id), v=s.value; s.innerHTML=`<option value="">${ph}</option>`+opts; s.value=v; });
+  }
+
+  /* ---------- Gerar link ---------- */
+  function mensagem(cv){
+    const p=(cv.nome||"").split(/\s+/)[0]||"";
+    return `Olá${p?", "+p:""}! Preencha sua Declaração de Vale-Transporte da ${cv.empresa.razao} (CNPJ ${cv.empresa.cnpj}).\n\nAcesse pelo celular: ${FORM_URL}?c=${cv.codigo}\n\nTenha em mãos o comprovante de residência (com data dos últimos 2 meses) e o cartão de passagem, se optar pelo vale. Se não optar, será pedida a foto de uma carta de próprio punho.`;
+  }
+  async function copiar(txt,btn){ let ok=false; try{await navigator.clipboard.writeText(txt);ok=true;}catch(e){const t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{ok=document.execCommand("copy");}catch(x){}t.remove();} const o=btn.textContent; btn.textContent=ok?"Copiado ✓":"Copie manualmente"; setTimeout(()=>btn.textContent=o,1800); }
+  function wa(cv){ const t=String(cv.tel||"").replace(/\D/g,""); return "https://wa.me/"+(t?(t.length<=11?"55"+t:t):"")+"?text="+encodeURIComponent(mensagem(cv)); }
+  function mostrar(cv){
+    const out=$("#genOut"), link=`${FORM_URL}?c=${cv.codigo}`; out.classList.remove("hidden");
+    out.innerHTML=`<h3>Link de ${esc(cv.nome)}</h3><p class="hint">${esc(cv.empresa.razao)} · CNPJ ${esc(cv.empresa.cnpj)} · código <strong>${esc(cv.codigo)}</strong></p>
+      <input type="text" readonly value="${esc(link)}" style="margin-top:8px" onclick="this.select()">
+      <label class="f" style="margin-top:12px">Mensagem pronta</label>
+      <textarea readonly rows="7" style="width:100%;font:inherit;font-size:.93rem;color:var(--ink);background:var(--paper);border:1.5px solid var(--line);border-radius:6px;padding:10px 12px">${esc(mensagem(cv))}</textarea>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px">
+        <button class="btn small" id="cpL">Copiar link</button><button class="btn small" id="cpM">Copiar mensagem</button>
+        <a class="btn small" style="text-decoration:none;background:#1F7A4D;color:#fff;border-color:#1F7A4D" href="${wa(cv)}" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+        <a class="btn small" style="text-decoration:none" href="${esc(link)}" target="_blank" rel="noopener">Abrir para testar</a>
+      </div>`;
+    $("#cpL").onclick=e=>copiar(link,e.target); $("#cpM").onclick=e=>copiar(mensagem(cv),e.target);
+  }
+  $("#genBtn").onclick=async()=>{
+    const cnpj=$("#genEmp").value, nome=$("#genNome").value.trim(), err=$("#err-gen");
+    if(!cnpj||nome.length<3){ err.textContent="Escolha a empresa e informe o nome do funcionário."; err.classList.add("show"); return; }
+    err.classList.remove("show"); const b=$("#genBtn"); b.disabled=true; b.textContent="Gerando…";
+    try{ const r=await api({action:"gerarConvite",cnpj,nome,tel:$("#genTel").value.trim()});
+      if(!r.ok) throw new Error(r.erro); mostrar(r.convite); $("#genNome").value=""; $("#genTel").value=""; carregar(); }
+    catch(e){ err.textContent=e.message||"Não foi possível gerar o link."; err.classList.add("show"); }
+    b.disabled=false; b.textContent="Gerar link";
+  };
+
+  function renderConvites(){
+    const fe=$("#fCvEmp").value, fs=$("#fCvSit").value;
+    const l=dados.convites.filter(c=>(!fe||c.empresa.cnpj===fe)&&(!fs||String(c.situacao).indexOf(fs)===0));
+    $("#cvCount").textContent=`${l.length} link(s)`;
+    $("#cvBody").innerHTML=l.length?l.map(c=>{
+      const s=String(c.situacao), pill=s.indexOf("Respondeu - opta")===0?'<span class="pill yes">Respondeu · opta</span>':s.indexOf("Respondeu")===0?'<span class="pill no">Respondeu · não opta</span>':'<span class="pill pend">Pendente</span>';
+      return `<tr><td>${esc(c.nome)}</td><td>${esc(c.empresa.razao)}<br><span class="hint">${esc(c.empresa.cnpj)}</span></td><td style="font-weight:700;letter-spacing:2px">${esc(c.codigo)}</td><td>${esc(c.criadoEm)}</td><td>${pill}${c.respondidoEm?'<br><span class="hint">'+esc(c.respondidoEm)+'</span>':""}</td>
+        <td style="white-space:nowrap"><button class="btn small" data-cv="${esc(c.codigo)}">Ver link</button> <button class="btn small" data-del="${esc(c.codigo)}">Cancelar</button></td></tr>`;}).join("")
+      :'<tr><td colspan="6" class="hint">Nenhum link gerado ainda.</td></tr>';
+    $$("[data-cv]").forEach(b=>b.onclick=()=>{ mostrar(dados.convites.find(x=>x.codigo===b.dataset.cv)); $("#genOut").scrollIntoView({behavior:"smooth",block:"center"}); });
+    $$("[data-del]").forEach(b=>b.onclick=async()=>{ if(!confirm("Cancelar este link? O funcionário não conseguirá mais usá-lo.")) return; await api({action:"excluirConvite",codigo:b.dataset.del}); carregar(); });
+  }
+  $("#fCvEmp").onchange=renderConvites; $("#fCvSit").onchange=renderConvites;
+
+  /* ---------- Respostas ---------- */
+  const chaveR=r=>r["Enviado em"]+"|"+r["Código"];
+  function filtradas(){
+    const fe=$("#fEmp").value, fo=$("#fOpcao").value, q=$("#fBusca").value.trim().toLowerCase();
+    return dados.respostas.filter(r=>(!fe||r["CNPJ"]===fe)&&(!fo||String(r["Opção"]).indexOf(fo)===0)&&(!q||String(r["Nome"]).toLowerCase().includes(q)));
+  }
+  function renderRespostas(){
+    const R=dados.respostas;
+    $("#kTot").textContent=R.length; $("#kOpt").textContent=R.filter(r=>r["Opção"]==="Opta").length;
+    $("#kNao").textContent=R.filter(r=>String(r["Opção"]).indexOf("Não")===0).length;
+    $("#kPend").textContent=dados.convites.filter(c=>c.situacao==="Pendente").length;
+    const l=filtradas();
+    $("#rBody").innerHTML=l.length?l.map((r,i)=>{
+      const k=chaveR(r), novo=!primeiraCarga&&!vistos.has(k); vistos.add(k);
+      const anexos=[r["Comprovante de residência"]?"Comprovante":"",r["Foto do cartão"]?"Cartão":"",r["Carta de próprio punho"]?"Carta":""].filter(Boolean).join(", ")||"—";
+      return `<tr class="${novo?"new-row":""}"><td><strong>${esc(r["Nome"])}</strong></td><td>${esc(r["Razão social"])}<br><span class="hint">${esc(r["CNPJ"])}</span></td>
+        <td>${r["Opção"]==="Opta"?'<span class="pill yes">Opta</span>':'<span class="pill no">Não opta</span>'}</td>
+        <td>${r["Custo diário (R$)"]?"R$ "+esc(r["Custo diário (R$)"]):"—"}</td><td>${esc(anexos)}</td><td>${esc(r["Enviado em"])}</td>
+        <td><button class="btn small" data-r="${i}">Ver</button></td></tr>`;}).join("")
+      :'<tr><td colspan="7" class="hint">Nenhuma resposta ainda.</td></tr>';
+    if(primeiraCarga) R.forEach(r=>vistos.add(chaveR(r)));
+    $$("[data-r]").forEach(b=>b.onclick=()=>detalhe(l[+b.dataset.r]));
+  }
+  ["#fEmp","#fOpcao"].forEach(id=>$(id).onchange=renderRespostas); $("#fBusca").oninput=renderRespostas;
+
+  function detalhe(r){
+    const lk=(t,u)=>u?`<a class="btn small" style="text-decoration:none" href="${esc(u)}" target="_blank" rel="noopener">${t}</a>`:"";
+    const linha=(t,v)=>v?`<p><strong>${t}:</strong> ${esc(v)}</p>`:"";
+    const end=r["Rua"]?`${r["Rua"]}, ${r["Número"]}${r["Complemento"]?" – "+r["Complemento"]:""}, ${r["Bairro"]}, ${r["Cidade"]}/${r["UF"]}, CEP ${r["CEP"]}`:"";
+    $("#dlgBody").innerHTML=`<h2>${esc(r["Nome"])}</h2><p class="hint">${esc(r["Razão social"])} · CNPJ ${esc(r["CNPJ"])} · código ${esc(r["Código"])}</p>
+      <p>${r["Opção"]==="Opta"?'<span class="pill yes">Opta pelo vale-transporte</span>':'<span class="pill no">Não opta / cancelou</span>'}</p>
+      ${linha("Local e data",r["Local"]+", "+r["Data da declaração"])}${linha("Endereço",end)}
+      ${linha("Ida",r["Ida (empresa / linha / valor)"])}${linha("Volta",r["Volta (empresa / linha / valor)"])}
+      ${r["Custo diário (R$)"]?linha("Custo diário","R$ "+r["Custo diário (R$)"]):""}
+      ${r["Opção"]==="Opta"?linha("Cartão de passagem",(r["Possui cartão"]==="Sim"?"possui":"ainda não possui")+(r["Nº do cartão"]?" · nº "+r["Nº do cartão"]:"")):""}
+      <p class="hint">Termo LGPD (versão ${esc(r["Versão do termo"])}) e assinatura eletrônica aceitos em ${esc(r["Enviado em"])}.</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">${lk("Abrir comprovante",r["Comprovante de residência"])}${lk("Abrir foto do cartão",r["Foto do cartão"])}${lk("Abrir carta de próprio punho",r["Carta de próprio punho"])}</div>
+      <p class="hint" style="margin-top:8px">As fotos abrem no Google Drive da conta do RH (é preciso estar conectado nela).</p>`;
+    $("#dlg").showModal();
+  }
+  $("#dlgClose").onclick=()=>$("#dlg").close();
+
+  $("#csv").onclick=()=>{
+    const l=filtradas(); if(!l.length) return;
+    const cols=Object.keys(l[0]), cell=v=>`"${String(v==null?"":v).replace(/"/g,'""')}"`;
+    const txt="\ufeff"+[cols.map(cell).join(";")].concat(l.map(r=>cols.map(c=>cell(r[c])).join(";"))).join("\r\n");
+    const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv;charset=utf-8"}));
+    a.download=`vale-transporte-respostas-${new Date().toISOString().slice(0,10)}.csv`; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+  };
+})();
+</script>
+</body>
+</html>
