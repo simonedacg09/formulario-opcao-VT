@@ -10,7 +10,7 @@
  * Veja o passo a passo completo no arquivo LEIA-ME.md.
  */
 
-const SENHA_RH = "Vegas4747@";          // senha do painel do RH
+const SENHA_RH ="Vegas4747@";          // senha do painel do RH
 const NOME_PASTA = "Vale-Transporte - Anexos";  // pasta no Drive para as fotos
 
 const EMPRESAS_INICIAIS = [
